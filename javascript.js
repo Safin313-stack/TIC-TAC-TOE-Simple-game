@@ -3,6 +3,7 @@ let resetBtn = document.querySelector("#reset-btn");
 let msgContainer = document.querySelector(".msg-container");
 let msg = document.querySelector("#msg");
 let newGameBtn = document.querySelector("#new-game-btn");
+let turnDisplay = document.querySelector("#turn-display");
 
 let turn0 = true;
 
@@ -19,7 +20,8 @@ const winPatterns = [
 
 const resetGame = () => {
     turn0 = true;
-    enableBoxes()
+    turnDisplay.textContent = "Player O's turn";
+    enableBoxes();
     msgContainer.classList.add("hide");
 }
 
@@ -27,12 +29,22 @@ const enableBoxes = () => {
     for (let box of boxes) {
         box.innerText = "";
         box.disabled = false;
+        box.classList.remove("o", "x");
     }   
 }
 
+const disableBoxes = () => {
+    for (let box of boxes) {
+        box.disabled = true;
+    }   
+};
+
+const isBoardFull = () => {
+    return Array.from(boxes).every(box => box.innerText !== "");
+};
+
 boxes.forEach((box, index) => {
   box.addEventListener("click", () => {
-    console.log("Box clicked:", index);
     if (turn0) {
       box.innerText = "O";
       box.classList.add("o");
@@ -43,35 +55,40 @@ boxes.forEach((box, index) => {
       turn0 = true;
     }
     box.disabled = true;
+    turnDisplay.textContent = turn0 ? "Player O's turn" : "Player X's turn";
 
     checkWinner();
   });
 });
 
-const disableBoxes = () => {
-    for (let box of boxes) {
-        box.disabled = true;
-    }   
-
-};
-
 const showWinner = (winner) => {
-  msg.innerText = `Congratulations! Winner is ${winner}`;
+  if (winner === "draw") {
+    msg.innerText = "It's a Draw! Play again.";
+  } else {
+    msg.innerText = `Congratulations! Winner is ${winner}`;
+  }
+  disableBoxes();
   msgContainer.classList.remove("hide");
 };  
 
 const checkWinner = () => {
+  let winnerFound = false;
   for (let pattern of winPatterns) {
     let pos1Val = boxes[pattern[0]].innerText;
     let pos2Val = boxes[pattern[1]].innerText;
     let pos3Val = boxes[pattern[2]].innerText;
 
-    if ( pos1Val != "" &&  pos2Val != "" && pos3Val != "" ) {
-      if (pos1Val == pos2Val && pos2Val == pos3Val) {
-       console.log("Winner found:", pos1Val);
-       showWinner(pos1Val);
+    if (pos1Val !== "" && pos2Val !== "" && pos3Val !== "" ) {
+      if (pos1Val === pos2Val && pos2Val === pos3Val) {
+        showWinner(pos1Val);
+        winnerFound = true;
+        break;
       }
     }
+  }
+  
+  if (!winnerFound && isBoardFull()) {
+    showWinner("draw");
   }
 };
 
